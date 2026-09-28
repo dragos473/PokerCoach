@@ -1,19 +1,144 @@
 @import "tailwindcss";
 
-:root {
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+/* Design tokens. Components use Tailwind classes such as bg-surface, text-muted, border-line. */
+@theme inline {
+  --color-bg: var(--c-bg);
+  --color-surface: var(--c-surface);
+  --color-surface-2: var(--c-surface-2);
+  --color-line: var(--c-line);
+  --color-fg: var(--c-fg);
+  --color-muted: var(--c-muted);
+  --color-accent: var(--c-accent);
+  --color-accent-fg: var(--c-accent-fg);
+  --color-good: var(--c-good);
+  --color-bad: var(--c-bad);
+  --color-warn: var(--c-warn);
+  --color-info: var(--c-info);
+  --color-felt: var(--c-felt);
+  --color-raise: var(--c-raise);
+  --color-call: var(--c-call);
+  --color-fold: var(--c-fold);
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
+}
+
+:root,
+[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #0f1115;
-  --panel: #171a21;
-  --border: #262b36;
-  --text: #e6e8ee;
-  --muted: #8a92a6;
-  --accent: #e5484d;
+  --c-bg: #0c0e12;
+  --c-surface: #14171d;
+  --c-surface-2: #1b1f27;
+  --c-line: #262b35;
+  --c-fg: #e9ebf0;
+  --c-muted: #8b93a6;
+  --c-accent: #e2424a;
+  --c-accent-fg: #ffffff;
+  --c-good: #34b27b;
+  --c-bad: #ec5a5f;
+  --c-warn: #f0a93b;
+  --c-info: #4c9be8;
+  --c-raise: #d9434b;
+  --c-call: #2f9e6e;
+  --c-fold: #3a4150;
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+  --c-bg: #f3f4f7;
+  --c-surface: #ffffff;
+  --c-surface-2: #eceef3;
+  --c-line: #d9dde5;
+  --c-fg: #14171d;
+  --c-muted: #5d6576;
+  --c-accent: #d0343c;
+  --c-accent-fg: #ffffff;
+  --c-good: #1f8f5f;
+  --c-bad: #d0343c;
+  --c-warn: #b8740e;
+  --c-info: #2a74c0;
+  --c-raise: #d0343c;
+  --c-call: #1f8f5f;
+  --c-fold: #c3c8d2;
+}
+
+:root {
+  --anim: 1;
+  --font-scale: 1;
+  --c-felt: #1d5b43;
+  /* Card suits (4-colour default; 2-colour overrides clubs/diamonds). */
+  --suit-s: #111318;
+  --suit-h: #d62839;
+  --suit-d: #1d6fd6;
+  --suit-c: #1c8a43;
+  /* Suit colours for inline text on the page background */
+  --suit-text-s: var(--c-fg);
+  --suit-text-h: #ec4d57;
+  --suit-text-d: #4c9be8;
+  --suit-text-c: #34b27b;
+}
+[data-deck='2color'] {
+  --suit-d: #d62839;
+  --suit-c: #111318;
+  --suit-text-d: #ec4d57;
+  --suit-text-c: var(--c-fg);
+}
+
+html {
+  font-size: calc(16px * var(--font-scale));
 }
 
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  background: var(--c-bg);
+  color: var(--c-fg);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
 }
+
+@utility transition-ui {
+  transition-property: color, background-color, border-color, opacity, transform, box-shadow;
+  transition-duration: calc(150ms * var(--anim));
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@utility animate-in {
+  animation: fade-in calc(180ms * var(--anim)) cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+@utility animate-deal {
+  animation: deal calc(260ms * var(--anim)) cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes deal {
+  from { opacity: 0; transform: translateY(-12px) scale(0.92); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --anim: 0 !important; }
+}
+
+/* Numbers line up in stat panels */
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* Markdown lesson typography */
+.prose-lesson h1 { font-size: 1.5rem; font-weight: 600; margin: 0 0 0.75rem; }
+.prose-lesson h2 { font-size: 1.2rem; font-weight: 600; margin: 1.75rem 0 0.5rem; }
+.prose-lesson h3 { font-size: 1.05rem; font-weight: 600; margin: 1.25rem 0 0.4rem; }
+.prose-lesson p { margin: 0.6rem 0; line-height: 1.65; }
+.prose-lesson ul, .prose-lesson ol { margin: 0.6rem 0; padding-left: 1.4rem; line-height: 1.6; }
+.prose-lesson ul { list-style: disc; }
+.prose-lesson ol { list-style: decimal; }
+.prose-lesson code { font-family: var(--font-mono); font-size: 0.9em; background: var(--c-surface-2); padding: 0.1rem 0.3rem; border-radius: 4px; }
+.prose-lesson strong { font-weight: 600; }
+.prose-lesson blockquote { border-left: 3px solid var(--c-line); padding-left: 0.9rem; color: var(--c-muted); margin: 0.8rem 0; }
+.prose-lesson table { border-collapse: collapse; margin: 0.8rem 0; font-size: 0.9rem; }
+.prose-lesson th, .prose-lesson td { border: 1px solid var(--c-line); padding: 0.3rem 0.6rem; text-align: left; }
+.prose-lesson a { color: var(--c-info); text-decoration: underline; }

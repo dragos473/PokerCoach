@@ -104,12 +104,25 @@ hands          { id, sessionId, at, config, seats, actions, board, result, heroD
 leaks          derived from hands (not stored), recomputed on demand
 ```
 
+### App conventions (Phase 2+)
+- Styling uses design tokens from `src/index.css` (`bg-surface`, `text-muted`, `border-line`,
+  `text-good/bad/warn/info`, `bg-felt`, `bg-raise/call/fold`). Light/dark are token swaps via `data-theme`.
+- `--anim` (animation multiplier) and `--font-scale` are CSS variables set by `ThemeApplier`.
+  Use the `transition-ui`, `animate-in`, `animate-deal` utilities so the speed setting applies.
+- Settings: `store/settingsSchema.ts` (types + defaults + `normalizeSettings` for forward compatibility),
+  `store/settings.ts` (Zustand, debounced save to Dexie). New options only need a default.
+- Hotkeys: declare actions in `hotkeys/actions.ts`, bind with `useHotkeys({ actionId: handler })`.
+- Heavy work in components: `useEngine()` gives a worker client that is disposed on unmount.
+- Routes: add to `ROUTES` in `app/App.tsx`; navigation items in `app/nav.ts`.
+
 ## Design decisions (pick the more customisable option when ambiguous)
 - Own evaluator instead of an npm library: small, dependency-free, verified exhaustively.
 - Range notation "+" raises the kicker only (T9s+ = T9s; A2s+ = A2s..AKs), as in PokerStove.
   Bare weights > 1 are read as percent ("AKs:75" = 75 %).
 - Outs are defined mathematically against a villain hand/range (clean / dirty / effective outs);
   improvement-only outs exist for when no range is given, and its dirty warnings are heuristics.
+- Hash routing (no router dependency) so the PWA works offline from any static path (`base: './'`).
+- Backup import supports "replace" and "merge" (upsert by primary key).
 - Worker cancellation terminates and lazily re-creates the worker (loops are synchronous).
 - Exact range-vs-range preflop is correct but slow (AKo vs QQ ~11 s); auto mode uses MC there.
   Possible later optimisation: suit-isomorphism cache for preflop matchups.
@@ -119,9 +132,11 @@ leaks          derived from hands (not stored), recomputed on demand
 - [x] **Phase 0** Plan, CLAUDE.md, scaffold (Vite/React/TS/Tailwind/Zustand/Dexie/Vitest)
 - [x] **Phase 1** Engine: cards, evaluator, combos, ranges + notation, blockers, equity (exact/MC,
       multiway, ranges), formulas with explanations, outs (clean/dirty), worker, tests.
-      Temporary "Engine check" page in `App.tsx`. **Stopped here for the user's equity sanity check.**
-- [ ] **Phase 2** App shell, navigation, dark/light theme, deck style, table colour, font size,
-      animation speed, remappable shortcuts, Settings page with per-section reset, Dexie + export/import, PWA
+      Engine check page (now `features/diagnostics`). User confirmed the equity numbers.
+- [x] **Phase 2** App shell (hash router, sidebar / mobile tab bar), dark/light/system theme, 2/4-colour
+      deck, table colour, font scale, animation speed, remappable shortcuts with conflict detection,
+      Settings page with per-section reset, Dexie + JSON export/import (replace/merge), PWA,
+      formula reference page, diagnostics page
 - [ ] **Phase 3** Preflop ranges: 13x13 grid (paint, drag, weights), baseline library (6-max/9-max
       cash, MTT, push/fold) with assumptions, stats, equity heatmap, range vs range, range drill
 - [ ] **Phase 4** Odds lab: calculator with show-the-math, quizzer (topics, difficulty, tolerance,

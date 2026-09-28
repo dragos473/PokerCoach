@@ -1,10 +1,10 @@
 /**
- * Temporary Phase 1 page: an engine sanity check.
- * Replaced by the real app shell in Phase 2. All computation runs in the engine worker.
+ * Engine diagnostics: reference matchups recomputed live, plus a free-form equity run.
+ * All computation runs in the engine worker.
  */
-import { useRef, useState } from 'react'
-import { EngineClient } from './engine/worker/client'
-import { parseCards, parseRange, liveCombos, type EquityResult, type EquityMethod } from './engine'
+import { useState } from 'react'
+import { useEngine } from '../../lib/useEngine'
+import { parseCards, parseRange, liveCombos, type EquityResult, type EquityMethod } from '../../engine'
 
 interface Matchup {
   label: string
@@ -42,19 +42,19 @@ function ResultCells({ r }: { r: EquityResult }) {
       <td className="px-3 py-2 font-mono tabular-nums">
         {r.players.map((p) => fmtPct(p.equity)).join(' / ')}
       </td>
-      <td className="px-3 py-2 font-mono tabular-nums text-[var(--muted)]">
+      <td className="px-3 py-2 font-mono tabular-nums text-[var(--c-muted)]">
         {r.method === 'exact' ? 'exact' : `± ${fmtPct(r.players[0].marginOfError95)} (95%)`}
       </td>
-      <td className="px-3 py-2 font-mono tabular-nums text-[var(--muted)]">
+      <td className="px-3 py-2 font-mono tabular-nums text-[var(--c-muted)]">
         {r.samples.toLocaleString()} · {Math.round(r.elapsedMs)} ms
       </td>
     </>
   )
 }
 
-export default function App() {
-  const client = useRef<EngineClient | null>(null)
-  const getClient = () => (client.current ??= new EngineClient())
+export function DiagnosticsPage() {
+  const engine = useEngine()
+  const getClient = () => engine
 
   const [refResults, setRefResults] = useState<(EquityResult | string | null)[]>(REFERENCE.map(() => null))
   const [running, setRunning] = useState(false)
@@ -106,28 +106,28 @@ export default function App() {
   }
 
   return (
-    <main className="mx-auto max-w-4xl p-4 sm:p-8 space-y-8">
+    <div className="space-y-8">
       <header>
-        <h1 className="text-xl font-semibold">PokerCoach · Engine check</h1>
-        <p className="text-sm text-[var(--muted)]">
-          Phase 1 sanity page. Every number is computed live by the engine in a Web Worker.
+        <h1 className="text-xl font-semibold">Engine diagnostics</h1>
+        <p className="text-sm text-muted">
+          Reference matchups recomputed live by the engine in a Web Worker, compared with commonly quoted values.
         </p>
       </header>
 
-      <section className="rounded-lg border border-[var(--border)] bg-[var(--panel)]">
+      <section className="rounded-lg border border-[var(--c-line)] bg-[var(--c-surface)]">
         <div className="flex items-center justify-between p-4">
           <h2 className="font-medium">Reference matchups</h2>
           <button
             onClick={runReference}
             disabled={running}
-            className="rounded-md bg-[var(--accent)] px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+            className="rounded-md bg-[var(--c-accent)] px-3 py-1.5 text-sm font-medium disabled:opacity-50"
           >
             {running ? 'Running…' : 'Run all'}
           </button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="text-left text-[var(--muted)]">
+            <thead className="text-left text-[var(--c-muted)]">
               <tr>
                 <th className="px-3 py-2 font-normal">Matchup</th>
                 <th className="px-3 py-2 font-normal">Equity %</th>
@@ -140,17 +140,17 @@ export default function App() {
               {REFERENCE.map((m, i) => {
                 const r = refResults[i]
                 return (
-                  <tr key={m.label} className="border-t border-[var(--border)]">
+                  <tr key={m.label} className="border-t border-[var(--c-line)]">
                     <td className="px-3 py-2">
                       {m.label}
-                      {m.board && <span className="ml-1 font-mono text-[var(--muted)]">[{m.board}]</span>}
+                      {m.board && <span className="ml-1 font-mono text-[var(--c-muted)]">[{m.board}]</span>}
                     </td>
                     {r && typeof r !== 'string' ? (
                       <ResultCells r={r} />
                     ) : (
-                      <td colSpan={3} className="px-3 py-2 text-[var(--muted)]">{typeof r === 'string' ? r : '·'}</td>
+                      <td colSpan={3} className="px-3 py-2 text-[var(--c-muted)]">{typeof r === 'string' ? r : '·'}</td>
                     )}
-                    <td className="px-3 py-2 text-[var(--muted)]">{m.note}</td>
+                    <td className="px-3 py-2 text-[var(--c-muted)]">{m.note}</td>
                   </tr>
                 )
               })}
@@ -159,9 +159,9 @@ export default function App() {
         </div>
       </section>
 
-      <section className="space-y-4 rounded-lg border border-[var(--border)] bg-[var(--panel)] p-4">
+      <section className="space-y-4 rounded-lg border border-[var(--c-line)] bg-[var(--c-surface)] p-4">
         <h2 className="font-medium">Custom calculation</h2>
-        <p className="text-xs text-[var(--muted)]">
+        <p className="text-xs text-[var(--c-muted)]">
           Players accept a hand (AsKd) or range notation (22+, A2s+, KTo+, AKs:50%, any). Board: e.g. 7h8h2c.
         </p>
         {inputs.map((v, i) => (
@@ -169,11 +169,11 @@ export default function App() {
             <input
               value={v}
               onChange={(e) => setInputs(inputs.map((x, j) => (j === i ? e.target.value : x)))}
-              className="flex-1 rounded-md border border-[var(--border)] bg-[var(--bg)] px-3 py-2 font-mono text-sm"
+              className="flex-1 rounded-md border border-[var(--c-line)] bg-[var(--c-bg)] px-3 py-2 font-mono text-sm"
               placeholder={`Player ${i + 1}`}
             />
             {inputs.length > 2 && (
-              <button onClick={() => setInputs(inputs.filter((_, j) => j !== i))} className="px-2 text-[var(--muted)]">
+              <button onClick={() => setInputs(inputs.filter((_, j) => j !== i))} className="px-2 text-[var(--c-muted)]">
                 ✕
               </button>
             )}
@@ -181,7 +181,7 @@ export default function App() {
         ))}
         <div className="flex flex-wrap gap-2">
           {inputs.length < 9 && (
-            <button onClick={() => setInputs([...inputs, ''])} className="rounded-md border border-[var(--border)] px-3 py-1.5 text-sm">
+            <button onClick={() => setInputs([...inputs, ''])} className="rounded-md border border-[var(--c-line)] px-3 py-1.5 text-sm">
               + player
             </button>
           )}
@@ -189,12 +189,12 @@ export default function App() {
             value={board}
             onChange={(e) => setBoard(e.target.value)}
             placeholder="Board"
-            className="w-36 rounded-md border border-[var(--border)] bg-[var(--bg)] px-3 py-1.5 font-mono text-sm"
+            className="w-36 rounded-md border border-[var(--c-line)] bg-[var(--c-bg)] px-3 py-1.5 font-mono text-sm"
           />
           <select
             value={method}
             onChange={(e) => setMethod(e.target.value as EquityMethod)}
-            className="rounded-md border border-[var(--border)] bg-[var(--bg)] px-2 py-1.5 text-sm"
+            className="rounded-md border border-[var(--c-line)] bg-[var(--c-bg)] px-2 py-1.5 text-sm"
           >
             <option value="auto">auto</option>
             <option value="exact">exact</option>
@@ -206,36 +206,36 @@ export default function App() {
             min={1000}
             step={10000}
             onChange={(e) => setIterations(Number(e.target.value))}
-            className="w-32 rounded-md border border-[var(--border)] bg-[var(--bg)] px-3 py-1.5 font-mono text-sm"
+            className="w-32 rounded-md border border-[var(--c-line)] bg-[var(--c-bg)] px-3 py-1.5 font-mono text-sm"
             title="Monte Carlo iterations"
           />
-          <button onClick={runCustom} className="rounded-md bg-[var(--accent)] px-3 py-1.5 text-sm font-medium">
+          <button onClick={runCustom} className="rounded-md bg-[var(--c-accent)] px-3 py-1.5 text-sm font-medium">
             Calculate
           </button>
-          <button onClick={() => getClient().cancel()} className="rounded-md border border-[var(--border)] px-3 py-1.5 text-sm">
+          <button onClick={() => getClient().cancel()} className="rounded-md border border-[var(--c-line)] px-3 py-1.5 text-sm">
             Stop
           </button>
         </div>
-        {error && <p className="text-sm text-[var(--accent)]">{error}</p>}
+        {error && <p className="text-sm text-[var(--c-accent)]">{error}</p>}
         {progress > 0 && progress < 1 && (
-          <div className="h-1 rounded bg-[var(--border)]">
-            <div className="h-1 rounded bg-[var(--accent)]" style={{ width: `${progress * 100}%` }} />
+          <div className="h-1 rounded bg-[var(--c-line)]">
+            <div className="h-1 rounded bg-[var(--c-accent)]" style={{ width: `${progress * 100}%` }} />
           </div>
         )}
         {custom && (
           <table className="w-full text-sm">
             <tbody>
               {custom.players.map((p, i) => (
-                <tr key={i} className="border-t border-[var(--border)]">
+                <tr key={i} className="border-t border-[var(--c-line)]">
                   <td className="px-3 py-2 font-mono">{inputs.filter((s) => s.trim())[i]}</td>
                   <td className="px-3 py-2 font-mono tabular-nums">{fmtPct(p.equity)}%</td>
-                  <td className="px-3 py-2 font-mono tabular-nums text-[var(--muted)]">
+                  <td className="px-3 py-2 font-mono tabular-nums text-[var(--c-muted)]">
                     win {fmtPct(p.win)} · tie {fmtPct(p.tie)}
                     {custom.method === 'monte-carlo' && ` · ± ${fmtPct(p.marginOfError95)}`}
                   </td>
                 </tr>
               ))}
-              <tr className="border-t border-[var(--border)] text-[var(--muted)]">
+              <tr className="border-t border-[var(--c-line)] text-[var(--c-muted)]">
                 <td colSpan={3} className="px-3 py-2">
                   {custom.method} · {custom.samples.toLocaleString()} samples · {Math.round(custom.elapsedMs)} ms
                 </td>
@@ -244,6 +244,6 @@ export default function App() {
           </table>
         )}
       </section>
-    </main>
+    </div>
   )
 }
