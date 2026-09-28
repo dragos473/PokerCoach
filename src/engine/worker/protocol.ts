@@ -2,6 +2,7 @@
 import type { EquityMethod, EquityResult } from '../equity'
 import type { WeightedCombo } from '../range'
 import type { Card } from '../cards'
+import type { PushFoldInput, PushFoldResult } from '../pushfold'
 
 export interface EquityJob {
   kind: 'equity'
@@ -14,9 +15,20 @@ export interface EquityJob {
   seed?: number
 }
 
-export type WorkerRequest = { id: number; job: EquityJob }
+export interface PushFoldJob extends PushFoldInput {
+  kind: 'pushFold'
+}
+
+export type Job = EquityJob | PushFoldJob
+
+export interface JobResultMap {
+  equity: EquityResult
+  pushFold: PushFoldResult
+}
+
+export type WorkerRequest = { id: number; job: Job }
 
 export type WorkerResponse =
-  | { id: number; type: 'progress'; fraction: number; partial?: EquityResult }
-  | { id: number; type: 'result'; result: EquityResult }
+  | { id: number; type: 'progress'; fraction: number; partial?: unknown }
+  | { id: number; type: 'result'; result: unknown }
   | { id: number; type: 'error'; message: string }

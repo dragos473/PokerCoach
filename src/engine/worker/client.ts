@@ -1,12 +1,19 @@
 /**
  * Promise-based client for the engine worker.
- * One job at a time per client; `cancel()` terminates the worker and spawns a fresh one lazily.
+ * One job at a time per client; starting a job cancels the previous one.
+ * `cancel()` terminates the worker; a fresh one is spawned lazily on the next job.
  */
 import type { EquityResult } from '../equity'
-import type { EquityJob, WorkerResponse } from './protocol'
+import type { EquityJob, Job, JobResultMap, PushFoldJob, WorkerResponse } from './protocol'
 
-export interface RunOptions {
-  onProgress?: (fraction: number, partial?: EquityResult) => void
+export interface RunOptions<P = unknown> {
+  onProgress?: (fraction: number, partial?: P) => void
+}
+
+export class CancelledError extends Error {
+  constructor() {
+    super('cancelled')
+  }
 }
 
 export class EngineClient {
@@ -21,27 +28,40 @@ export class EngineClient {
     return this.worker
   }
 
-  equity(job: Omit<EquityJob, 'kind'>, opts: RunOptions = {}): Promise<EquityResult> {
+  run<K extends Job['kind']>(job: Extract<Job, { kind: K }>, opts: RunOptions = {}): Promise<JobResultMap[K]> {
     this.cancel()
     const worker = this.getWorker()
     const id = this.nextId++
-    return new Promise<EquityResult>((resolve, reject) => {
+    return new Promise<JobResultMap[K]>((resolve, reject) => {
       this.pending = { id, reject }
       worker.onmessage = (ev: MessageEvent<WorkerResponse>) => {
         const msg = ev.data
         if (msg.id !== id) return
         if (msg.type === 'progress') opts.onProgress?.(msg.fraction, msg.partial)
-        else if (msg.type === 'result') { this.pending = null; resolve(msg.result) }
+        else if (msg.type === 'result') { this.pending = null; resolve(msg.result as JobResultMap[K]) }
         else { this.pending = null; reject(new Error(msg.message)) }
       }
-      worker.postMessage({ id, job: { kind: 'equity', ...job } })
+      worker.onerror = (e) => { this.pending = null; reject(new Error(e.message || 'Worker error')) }
+      worker.postMessage({ id, job })
     })
   }
 
-  /** Abort the running job (if any). The promise rejects with an AbortError-like error. */
+  equity(job: Omit<EquityJob, 'kind'>, opts: RunOptions<EquityResult> = {}): Promise<EquityResult> {
+    return this.run({ kind: 'equity', ...job }, opts as RunOptions)
+  }
+
+  pushFold(job: Omit<PushFoldJob, 'kind'>) {
+    return this.run({ kind: 'pushFold', ...job })
+  }
+
+  get busy(): boolean {
+    return this.pending !== null
+  }
+
+  /** Abort the running job (if any). Its promise rejects with CancelledError. */
   cancel(): void {
     if (this.pending) {
-      this.pending.reject(new Error('cancelled'))
+      this.pending.reject(new CancelledError())
       this.pending = null
       this.worker?.terminate()
       this.worker = null
