@@ -57,12 +57,12 @@ export function ActionBar({ h, sizes, selectedTo, onSelect, onAct, disabled, bus
         </div>
       )}
       <div className="grid grid-cols-3 gap-2">
-        <Button size="lg" variant="secondary" disabled={disabled || !legal.canFold} onClick={() => act({ kind: 'fold' })}>Fold <Kbd>F</Kbd></Button>
+        <Button size="lg" variant="secondary" disabled={disabled || !legal.canFold} onClick={() => act({ kind: 'fold' })}>Fold <span className="hidden sm:inline-flex"><Kbd>F</Kbd></span></Button>
         <Button size="lg" variant="secondary" disabled={disabled} onClick={() => act(legal.canCheck ? { kind: 'check' } : { kind: 'call' })}>
-          {legal.canCheck ? 'Check' : `Call ${bb(legal.callAmount)}`}{!legal.canCheck && legal.callAmount >= hero.stack && ' (all-in)'} <Kbd>C</Kbd>
+          {legal.canCheck ? 'Check' : `Call ${bb(legal.callAmount)}`}{!legal.canCheck && legal.callAmount >= hero.stack && ' (all-in)'} <span className="hidden sm:inline-flex"><Kbd>C</Kbd></span>
         </Button>
         <Button size="lg" variant="primary" disabled={disabled || !legal.canRaise || to === null} onClick={() => to !== null && act({ kind: 'raise', to })}>
-          {to !== null && to >= legal.maxRaiseTo ? 'All-in' : raiseLabel} {to !== null && bb(to)} <Kbd>R</Kbd>
+          {to !== null && to >= legal.maxRaiseTo ? 'All-in' : raiseLabel} {to !== null && bb(to)} <span className="hidden sm:inline-flex"><Kbd>R</Kbd></span>
         </Button>
       </div>
       {busyNote && <p className="mt-2 text-center text-xs text-muted">{busyNote}</p>}

@@ -180,4 +180,5 @@ leaks          derived from hands (not stored), recomputed on demand
       board-relative classification (`handStrength.ts`), per-combo equity vectors and one-street EV
       model (`decision.ts`), HUD (13 toggleable/re-orderable items), villain range estimator with
       presets and board breakdown, after-hand review vs the bot's true range, history, leak tracker
-- [ ] **Phase 7** Polish, keyboard play, empty/loading/error states, README
+- [x] **Phase 7** Polish: route code-splitting (lazy pages), error boundaries (routes and lesson
+      widgets), empty/loading states, mobile table layout, keyboard play, full README

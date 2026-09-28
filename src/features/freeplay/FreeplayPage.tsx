@@ -212,7 +212,7 @@ export function FreeplayPage() {
           <Badge tone={session.stats.netBB >= 0 ? 'good' : 'bad'}>{session.stats.netBB >= 0 ? '+' : ''}{session.stats.netBB.toFixed(1)} bb</Badge>
           {session.stats.hands > 0 && <Badge>{(session.stats.netBB / session.stats.hands * 100).toFixed(1)} bb/100</Badge>}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1 sm:gap-2">
           <Button size="sm" variant="ghost" onClick={() => fp.set({ hudVisible: !fp.hudVisible })}>{fp.hudVisible ? 'Hide' : 'Show'} HUD <Kbd>H</Kbd></Button>
           <Button size="sm" variant="ghost" onClick={() => fp.set({ revealModel: !fp.revealModel })} title="Show the bot model's true numbers during the hand">{fp.revealModel ? 'Hide' : 'Show'} model</Button>
           <a href="#/freeplay/history" className="text-xs text-info underline">History & leaks</a>

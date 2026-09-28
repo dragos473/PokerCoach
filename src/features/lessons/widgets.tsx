@@ -19,6 +19,7 @@ import { buildQuestion, formatAnswer, generateParams, grade, parseAnswer, type N
 import type { QuizTopic } from '../../store/settingsSchema'
 import { createRng } from '../../engine/rng'
 import type { WidgetType } from './format'
+import { ErrorBoundary } from '../../components/ErrorBoundary'
 
 type Config = Record<string, string>
 
@@ -251,15 +252,19 @@ function HandWidget({ config }: { config: Config }) {
   )
 }
 
-export function Widget({ type, config, onQuizResult }: { type: WidgetType; config: Config; onQuizResult?: (correct: boolean) => void }) {
-  try {
-    switch (type) {
-      case 'range-grid': return <RangeGridWidget config={config} />
-      case 'equity-calc': return <EquityCalcWidget config={config} />
-      case 'quiz': return <QuizWidget config={config} onResult={onQuizResult} />
-      case 'hand': return <HandWidget config={config} />
-    }
-  } catch (e) {
-    return <p className="text-sm text-bad">Widget error: {String(e)}</p>
+function WidgetInner({ type, config, onQuizResult }: { type: WidgetType; config: Config; onQuizResult?: (correct: boolean) => void }) {
+  switch (type) {
+    case 'range-grid': return <RangeGridWidget config={config} />
+    case 'equity-calc': return <EquityCalcWidget config={config} />
+    case 'quiz': return <QuizWidget config={config} onResult={onQuizResult} />
+    case 'hand': return <HandWidget config={config} />
   }
+}
+
+export function Widget(props: { type: WidgetType; config: Config; onQuizResult?: (correct: boolean) => void }) {
+  return (
+    <ErrorBoundary fallback={(e) => <p className="my-4 rounded-md border border-bad/40 p-3 text-sm text-bad">Widget “{props.type}” failed: {e.message}. Check the lesson file.</p>}>
+      <WidgetInner {...props} />
+    </ErrorBoundary>
+  )
 }

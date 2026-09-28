@@ -28,8 +28,8 @@ export function TableView({ h, lastActionBySeat, onSeatClick, showAll }: {
   const reveal = (i: number) => h.seats[i].isHero || showAll || (h.finished && h.showdown && !h.seats[i].folded)
 
   return (
-    <div className="relative mx-auto aspect-[16/11] w-full max-w-3xl select-none sm:aspect-[16/9]">
-      <div className="absolute inset-[9%_6%] rounded-[50%] border-[10px] border-[#2a2f3a] bg-felt shadow-[inset_0_0_60px_rgba(0,0,0,0.45)]" />
+    <div className="relative mx-auto aspect-[4/5] w-full max-w-3xl select-none sm:aspect-[16/9]">
+      <div className="absolute inset-[9%_8%] rounded-[50%] border-[8px] border-[#2a2f3a] bg-felt shadow-[inset_0_0_60px_rgba(0,0,0,0.45)] sm:inset-[9%_6%] sm:border-[10px]" />
       {/* Board and pot */}
       <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-2">
         <div className="rounded-full bg-black/30 px-3 py-0.5 font-mono text-xs text-white tabular">Pot {bb(pot)} bb</div>
@@ -48,7 +48,7 @@ export function TableView({ h, lastActionBySeat, onSeatClick, showAll }: {
               type="button"
               onClick={() => onSeatClick?.(i)}
               className={cx(
-                'absolute flex w-[7.5rem] -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1 rounded-lg transition-ui sm:w-36',
+                'absolute flex w-[5.8rem] -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1 rounded-lg transition-ui sm:w-36',
                 x.folded && 'opacity-45',
               )}
               style={{ left: `${p.x}%`, top: `${p.y}%` }}
