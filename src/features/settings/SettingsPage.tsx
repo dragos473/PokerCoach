@@ -254,7 +254,7 @@ function FreeplaySettingsSection() {
       </Field>
       <Field label="Bot action delay"><NumberInput value={f.botDelayMs} min={0} max={5000} step={100} onChange={(botDelayMs) => update('freeplay', { botDelayMs })} suffix="ms" /></Field>
       <Field label="Auto-deal next hand"><Toggle checked={f.autoDeal} onChange={(autoDeal) => update('freeplay', { autoDeal })} /></Field>
-      <Field label="Pause at every decision" hint="Waits for you before each of your actions even when obvious."><Toggle checked={f.pauseEveryDecision} onChange={(pauseEveryDecision) => update('freeplay', { pauseEveryDecision })} /></Field>
+      <Field label="Pause at every decision" hint="Step mode: every bot action waits until you press Next (Space)."><Toggle checked={f.pauseEveryDecision} onChange={(pauseEveryDecision) => update('freeplay', { pauseEveryDecision })} /></Field>
       <Field label="Flag decisions losing more than"><NumberInput value={f.mistakeThresholdBB} min={0} max={50} step={0.25} onChange={(mistakeThresholdBB) => update('freeplay', { mistakeThresholdBB })} suffix="bb EV" /></Field>
       <Field label="Live equity trials (HUD)"><NumberInput value={f.equityIterations} min={1000} max={500_000} step={1000} onChange={(equityIterations) => update('freeplay', { equityIterations })} /></Field>
       <Field label="Seat profiles" hint="Bot profile for each seat, clockwise from your left.">

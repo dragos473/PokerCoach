@@ -237,7 +237,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
     profiles: DEFAULT_BOT_PROFILES,
     botDelayMs: 500,
     autoDeal: false,
-    pauseEveryDecision: true,
+    pauseEveryDecision: false,
     mistakeThresholdBB: 1,
     equityIterations: 20_000,
   },

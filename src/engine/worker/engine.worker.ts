@@ -6,6 +6,8 @@
 import { calculateEquity } from '../equity'
 import { solvePushFold } from '../pushfold'
 import { simulateVariance } from '../variance'
+import { equityVector } from '../game/decision'
+import { strengthTable } from '../game/handStrength'
 import type { WorkerRequest, WorkerResponse } from './protocol'
 
 const ctx = self as unknown as DedicatedWorkerGlobalScope
@@ -31,6 +33,14 @@ ctx.onmessage = (ev: MessageEvent<WorkerRequest>) => {
       }
       case 'variance': {
         post({ id, type: 'result', result: simulateVariance(job) })
+        break
+      }
+      case 'equityVector': {
+        post({ id, type: 'result', result: equityVector(job.hero, job.board, job.dead) })
+        break
+      }
+      case 'strength': {
+        post({ id, type: 'result', result: strengthTable(job.board) })
         break
       }
       case 'pushFold': {

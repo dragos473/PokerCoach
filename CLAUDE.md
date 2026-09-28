@@ -142,6 +142,11 @@ leaks          derived from hands (not stored), recomputed on demand
   (answers computed by the engine), so spaced repetition can replay the exact question.
 - Charts are small in-house SVG components (`components/charts.tsx`) following the data-viz rules:
   2px lines, hairline grid, one y-axis, legend for >= 2 series, hover crosshair + tooltip.
+- Bots act from ranges: every decision is a per-combo policy (fold/call/raise), the bot's range is
+  narrowed by P(action | combo), so the "actual range" and action probabilities are exact for the model.
+- HUD EVs use a one-street model (no further betting; re-raises counted as calls). Preflop decisions
+  are only graded when all-in, because the model ignores equity realisation. These limits are shown in the UI.
+- Freeplay stacks reset to the configured depth each hand (cash-game style).
 - Hash routing (no router dependency) so the PWA works offline from any static path (`base: './'`).
 - Backup import supports "replace" and "merge" (upsert by primary key).
 - Worker cancellation terminates and lazily re-creates the worker (loops are synchronous).
@@ -170,6 +175,9 @@ leaks          derived from hands (not stored), recomputed on demand
       `{{expressions}}` computed by the engine, callouts (math / heuristic / note), widgets (range
       grid, equity calc, quiz, hand replay), progress + end-of-lesson quiz score; a test evaluates
       every expression and rejects hand-typed percentages/odds
-- [ ] **Phase 6** Freeplay: 2-9 players, bot profiles, HUD (toggle/reorder), villain range estimator,
-      live EV / fold equity / action probabilities, after-hand review, hand history, leak tracker
+- [x] **Phase 6** Freeplay: NLHE engine (`engine/game/table.ts`: blinds, antes, straddle, min-raise,
+      incomplete all-ins, side pots), explainable range-based bots (`engine/game/bots.ts`), EHS and
+      board-relative classification (`handStrength.ts`), per-combo equity vectors and one-street EV
+      model (`decision.ts`), HUD (13 toggleable/re-orderable items), villain range estimator with
+      presets and board breakdown, after-hand review vs the bot's true range, history, leak tracker
 - [ ] **Phase 7** Polish, keyboard play, empty/loading/error states, README

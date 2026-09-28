@@ -58,6 +58,14 @@ export class EngineClient {
     return this.run({ kind: 'variance', ...job })
   }
 
+  equityVector(hero: [number, number], board: number[], dead: number[] = []) {
+    return this.run({ kind: 'equityVector', hero, board, dead })
+  }
+
+  strength(board: number[]) {
+    return this.run({ kind: 'strength', board })
+  }
+
   get busy(): boolean {
     return this.pending !== null
   }

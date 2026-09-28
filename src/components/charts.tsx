@@ -134,14 +134,14 @@ export function LineChart({ x, series, bands = [], refLines = [], height = 320, 
 }
 
 /** Horizontal bars (single series), value at the tip, hover tooltip. */
-export function BarList({ rows, max = 1, format = String, color = 'var(--series-1)' }: {
-  rows: { id: string; label: string; value: number; sub?: string }[]; max?: number; format?: (v: number) => string; color?: string
+export function BarList({ rows, max = 1, format = String, color = 'var(--series-1)', labelWidth = '8rem' }: {
+  rows: { id: string; label: string; value: number; sub?: string }[]; max?: number; format?: (v: number) => string; color?: string; labelWidth?: string
 }) {
   const [hover, setHover] = useState<string | null>(null)
   return (
     <div className="space-y-1.5">
       {rows.map((r) => (
-        <div key={r.id} className="grid grid-cols-[8rem_minmax(0,1fr)] items-center gap-3 text-xs" onPointerEnter={() => setHover(r.id)} onPointerLeave={() => setHover(null)}>
+        <div key={r.id} className="grid items-center gap-3 text-xs" style={{ gridTemplateColumns: `min(${labelWidth}, 45%) minmax(0,1fr)` }} onPointerEnter={() => setHover(r.id)} onPointerLeave={() => setHover(null)}>
           <span className="truncate text-muted" title={r.label}>{r.label}</span>
           <div className="flex items-center gap-2">
             <div className="h-3 flex-1">
