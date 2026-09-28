@@ -15,6 +15,7 @@ import { CalculatorPage } from '../features/odds/CalculatorPage'
 import { QuizPage } from '../features/odds/QuizPage'
 import { QuizStatsPage } from '../features/odds/QuizStatsPage'
 import { VariancePage } from '../features/odds/VariancePage'
+import { LessonsPage, LessonPage } from '../features/lessons/LessonsPage'
 
 type RouteDef = { pattern: string; render: (params: Record<string, string>) => ReactNode }
 
@@ -31,6 +32,8 @@ const ROUTES: RouteDef[] = [
   { pattern: '/odds/quiz', render: () => <QuizPage /> },
   { pattern: '/odds/stats', render: () => <QuizStatsPage /> },
   { pattern: '/odds/variance', render: () => <VariancePage /> },
+  { pattern: '/lessons', render: () => <LessonsPage /> },
+  { pattern: '/lessons/:id', render: (p) => <LessonPage id={p.id} /> },
 ]
 
 export function App() {

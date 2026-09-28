@@ -154,3 +154,15 @@ describe('outs', () => {
     expect(r.effectiveOuts).toBeLessThan(r.cleanOuts + r.dirtyOuts)
   })
 })
+
+import { geometricBet } from '../formulas'
+describe('geometric bet sizing', () => {
+  it('gets exactly all-in after n called bets', () => {
+    for (const [P, S, n] of [[10, 100, 3], [6.5, 97.5, 3], [20, 40, 2], [10, 10, 1]]) {
+      const f = geometricBet.compute({ pot: P, stack: S, streets: n })
+      let pot = P, stack = S
+      for (let i = 0; i < n; i++) { const bet = f * pot; stack -= bet; pot += 2 * bet }
+      expect(stack).toBeCloseTo(0, 9)
+    }
+  })
+})

@@ -528,6 +528,21 @@ export const handsToConfidence = defineFormula<{ winRate: number; stdDev: number
   steps: ({ winRate, stdDev, confidenceZ }, v) => [`100 · (${fmt(confidenceZ)}·${fmt(stdDev)} / ${fmt(winRate)})² = ${fmt(v, 0)} hands`],
 })
 
+export const geometricBet = defineFormula<{ pot: number; stack: number; streets: number }>({
+  id: 'geometricBet',
+  name: 'Geometric bet size',
+  expression: 'f = ( (1 + 2·S/P)^(1/n) − 1 ) / 2',
+  description: 'Bet fraction of pot that, used on each of n streets (and called each time), gets exactly the stack S all-in. Each called bet of f·P turns the pot P into P·(1 + 2f).',
+  variables: { pot: 'P: current pot', stack: 'S: effective stack behind', streets: 'n: number of bets (streets) left' },
+  kind: 'math',
+  assumptions: ['Every bet is called (no raises); the same fraction is used on every street.'],
+  compute: ({ pot, stack, streets }) => (Math.pow(1 + (2 * stack) / pot, 1 / streets) - 1) / 2,
+  steps: ({ pot, stack, streets }, v) => [
+    `(1 + 2·${fmt(stack)}/${fmt(pot)})^(1/${fmt(streets)}) = ${fmt(Math.pow(1 + (2 * stack) / pot, 1 / streets), 4)}`,
+    `f = (${fmt(Math.pow(1 + (2 * stack) / pot, 1 / streets), 4)} − 1) / 2 = ${pct(v)} of the pot`,
+  ],
+})
+
 /** Registry for the UI ("show the math" tooltips, formula reference page). */
 export const FORMULAS = {
   pairCombos, unpairedCombos, totalStartingHands,
@@ -536,5 +551,6 @@ export const FORMULAS = {
   hitNextCard, hitByRiver, ruleOf2, ruleOf4,
   impliedOddsNeeded, evWithImpliedOdds,
   expectedWinnings, resultStdDev, probLoser, riskOfRuin, riskOfRuinFinite, handsToConfidence,
+  geometricBet,
 } as const
 export type FormulaId = keyof typeof FORMULAS

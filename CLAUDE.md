@@ -135,6 +135,9 @@ leaks          derived from hands (not stored), recomputed on demand
   worker, so they always match the engine and the stated assumptions.
 - The preflop matrix is generated data (reproducible with `npm run gen:matrix`, deterministic seeds)
   and is validated in tests against exact values and fresh Monte Carlo runs.
+- Lessons: numbers in prose must be `{{expressions}}` (see `features/lessons/expressions.ts` for the
+  list). `{{assume 45%}}` marks an example assumption. `lessons.test.ts` enforces this. Lessons are
+  bundled via `import.meta.glob`, so a new .md file appears after a rebuild / dev reload.
 - Quiz questions are generated as plain JSON params (random) and then built deterministically
   (answers computed by the engine), so spaced repetition can replay the exact question.
 - Charts are small in-house SVG components (`components/charts.tsx`) following the data-viz rules:
@@ -163,8 +166,10 @@ leaks          derived from hands (not stored), recomputed on demand
       worker, outs clean/dirty/effective, pot odds & EV with show-the-math), quizzer (10 topics,
       3 difficulties, time limit, tolerances, SM-2-style spaced repetition, per-topic/daily charts),
       variance simulator (paths, analytic 95 % band, finite/infinite risk of ruin, P(behind))
-- [ ] **Phase 5** Lessons in `content/lessons/` with embedded widgets, curriculum, progress, quizzes;
-      every number computed by the engine or verified by a test
+- [x] **Phase 5** 14 Markdown lessons in `content/lessons/` (beginner → intermediate), inline
+      `{{expressions}}` computed by the engine, callouts (math / heuristic / note), widgets (range
+      grid, equity calc, quiz, hand replay), progress + end-of-lesson quiz score; a test evaluates
+      every expression and rejects hand-typed percentages/odds
 - [ ] **Phase 6** Freeplay: 2-9 players, bot profiles, HUD (toggle/reorder), villain range estimator,
       live EV / fold equity / action probabilities, after-hand review, hand history, leak tracker
 - [ ] **Phase 7** Polish, keyboard play, empty/loading/error states, README
