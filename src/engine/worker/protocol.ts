@@ -3,6 +3,7 @@ import type { EquityMethod, EquityResult } from '../equity'
 import type { WeightedCombo } from '../range'
 import type { Card } from '../cards'
 import type { PushFoldInput, PushFoldResult } from '../pushfold'
+import type { VarianceInput, VarianceResult } from '../variance'
 
 export interface EquityJob {
   kind: 'equity'
@@ -19,11 +20,16 @@ export interface PushFoldJob extends PushFoldInput {
   kind: 'pushFold'
 }
 
-export type Job = EquityJob | PushFoldJob
+export interface VarianceJob extends VarianceInput {
+  kind: 'variance'
+}
+
+export type Job = EquityJob | PushFoldJob | VarianceJob
 
 export interface JobResultMap {
   equity: EquityResult
   pushFold: PushFoldResult
+  variance: VarianceResult
 }
 
 export type WorkerRequest = { id: number; job: Job }

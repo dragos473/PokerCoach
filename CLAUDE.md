@@ -44,6 +44,8 @@ src/
                           heatmaps (card removal exact, suits class-averaged), ranking vs random,
                           top-X% ranges, preflop hand categories
     pushfold.ts           Heads-up SB-shove / BB-call equilibrium by fictitious play (chip EV)
+    stats.ts              Normal CDF / quantile / sampling
+    variance.ts           Brownian-motion bankroll simulation (formulas for RoR etc. live in formulas.ts)
     worker/               engine.worker.ts (Web Worker entry), client.ts (promise API + cancel), protocol.ts
     __tests__/            Vitest suites (reference values, exhaustive checks, naive cross-checks)
   (Phase 2+)
@@ -133,6 +135,10 @@ leaks          derived from hands (not stored), recomputed on demand
   worker, so they always match the engine and the stated assumptions.
 - The preflop matrix is generated data (reproducible with `npm run gen:matrix`, deterministic seeds)
   and is validated in tests against exact values and fresh Monte Carlo runs.
+- Quiz questions are generated as plain JSON params (random) and then built deterministically
+  (answers computed by the engine), so spaced repetition can replay the exact question.
+- Charts are small in-house SVG components (`components/charts.tsx`) following the data-viz rules:
+  2px lines, hairline grid, one y-axis, legend for >= 2 series, hover crosshair + tooltip.
 - Hash routing (no router dependency) so the PWA works offline from any static path (`base: './'`).
 - Backup import supports "replace" and "merge" (upsert by primary key).
 - Worker cancellation terminates and lazily re-creates the worker (loops are synchronous).
@@ -153,8 +159,10 @@ leaks          derived from hands (not stored), recomputed on demand
       undo/redo, groups, top-X%), layered raise/call charts, baseline library (6-max, 9-max, MTT 40 bb)
       with assumptions, computed HU push/fold (engine Nash solver), stats + categories, fast matrix
       equity + engine equity, heatmap, compare page, range drill with mixed-strategy grading
-- [ ] **Phase 4** Odds lab: calculator with show-the-math, quizzer (topics, difficulty, tolerance,
-      spaced repetition, accuracy charts), variance simulator (paths, CIs, risk of ruin)
+- [x] **Phase 4** Odds lab: calculator (hands/ranges, multiway, board, dead cards, auto equity in the
+      worker, outs clean/dirty/effective, pot odds & EV with show-the-math), quizzer (10 topics,
+      3 difficulties, time limit, tolerances, SM-2-style spaced repetition, per-topic/daily charts),
+      variance simulator (paths, analytic 95 % band, finite/infinite risk of ruin, P(behind))
 - [ ] **Phase 5** Lessons in `content/lessons/` with embedded widgets, curriculum, progress, quizzes;
       every number computed by the engine or verified by a test
 - [ ] **Phase 6** Freeplay: 2-9 players, bot profiles, HUD (toggle/reorder), villain range estimator,

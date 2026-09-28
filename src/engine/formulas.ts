@@ -18,6 +18,8 @@
  *   All probabilities/equities are fractions 0..1; the UI converts to %.
  */
 
+import { normalCdf } from './stats'
+
 export type FormulaKind = 'math' | 'model' | 'heuristic'
 
 export interface Explanation {
@@ -423,6 +425,109 @@ export const evWithImpliedOdds = defineFormula<{
   ],
 })
 
+
+// ---------------------------------------------------------------------------------------------
+// Variance (normal / Brownian-motion model of results)
+// ---------------------------------------------------------------------------------------------
+
+const VAR_ASSUMPTIONS = [
+  'Results per 100 hands are independent and normally distributed (central limit theorem), with the given true win rate and standard deviation.',
+  'The true win rate is constant (no learning, no changing games).',
+]
+
+export const expectedWinnings = defineFormula<{ winRate: number; hands: number }>({
+  id: 'expectedWinnings',
+  name: 'Expected winnings',
+  expression: 'E[W] = winRate · hands / 100',
+  description: 'Mean result after the given number of hands.',
+  variables: { winRate: 'true win rate (bb/100)', hands: 'number of hands' },
+  kind: 'model',
+  assumptions: VAR_ASSUMPTIONS,
+  compute: ({ winRate, hands }) => (winRate * hands) / 100,
+  steps: ({ winRate, hands }, v) => [`${fmt(winRate)} · ${fmt(hands)} / 100 = ${fmt(v, 1)} bb`],
+})
+
+export const resultStdDev = defineFormula<{ stdDev: number; hands: number }>({
+  id: 'resultStdDev',
+  name: 'Standard deviation of results',
+  expression: 'SD[W] = sd · √(hands / 100)',
+  description: 'Spread of the total result; it grows with the square root of the sample size.',
+  variables: { stdDev: 'standard deviation (bb/100)', hands: 'number of hands' },
+  kind: 'model',
+  assumptions: VAR_ASSUMPTIONS,
+  compute: ({ stdDev, hands }) => stdDev * Math.sqrt(hands / 100),
+  steps: ({ stdDev, hands }, v) => [`${fmt(stdDev)} · √(${fmt(hands)} / 100) = ${fmt(v, 1)} bb`],
+})
+
+export const probLoser = defineFormula<{ winRate: number; stdDev: number; hands: number }>({
+  id: 'probLoser',
+  name: 'Probability of being behind after N hands',
+  expression: 'P(W < 0) = Φ( −winRate·n / (sd·√n) ),  n = hands / 100',
+  description: 'Chance that a player with this true win rate is still losing after the sample.',
+  variables: { winRate: 'true win rate (bb/100)', stdDev: 'standard deviation (bb/100)', hands: 'number of hands' },
+  kind: 'model',
+  assumptions: VAR_ASSUMPTIONS,
+  compute: ({ winRate, stdDev, hands }) => {
+    const n = hands / 100
+    return normalCdf((-winRate * n) / (stdDev * Math.sqrt(n)))
+  },
+  steps: ({ winRate, stdDev, hands }, v) => {
+    const n = hands / 100
+    const z = (-winRate * n) / (stdDev * Math.sqrt(n))
+    return [`n = ${fmt(n)}`, `z = −${fmt(winRate)}·${fmt(n)} / (${fmt(stdDev)}·√${fmt(n)}) = ${fmt(z, 3)}`, `Φ(${fmt(z, 3)}) = ${pct(v)}`]
+  },
+})
+
+export const riskOfRuin = defineFormula<{ winRate: number; stdDev: number; bankroll: number }>({
+  id: 'riskOfRuin',
+  name: 'Risk of ruin (unlimited horizon)',
+  expression: 'RoR = exp( −2 · winRate · B / sd² )',
+  description: 'Probability of ever losing the whole bankroll B if you play forever (Brownian motion with drift). 100 % for a non-winning player.',
+  variables: { winRate: 'true win rate (bb/100)', stdDev: 'standard deviation (bb/100)', bankroll: 'B: bankroll (bb)' },
+  kind: 'model',
+  assumptions: [...VAR_ASSUMPTIONS, 'No moving down in stakes, no cash-outs.'],
+  compute: ({ winRate, stdDev, bankroll }) => (winRate <= 0 ? 1 : Math.exp((-2 * winRate * bankroll) / (stdDev * stdDev))),
+  steps: ({ winRate, stdDev, bankroll }, v) =>
+    winRate <= 0 ? ['win rate ≤ 0: ruin is certain in the long run'] : [
+      `exponent = −2·${fmt(winRate)}·${fmt(bankroll)} / ${fmt(stdDev)}² = ${fmt((-2 * winRate * bankroll) / (stdDev * stdDev), 4)}`,
+      `exp(…) = ${pct(v, 3)}`,
+    ],
+})
+
+export const riskOfRuinFinite = defineFormula<{ winRate: number; stdDev: number; bankroll: number; hands: number }>({
+  id: 'riskOfRuinFinite',
+  name: 'Risk of ruin within N hands',
+  expression: 'P = Φ((−B − μT)/(σ√T)) + exp(−2μB/σ²) · Φ((−B + μT)/(σ√T)),  μ = winRate, σ = sd, T = hands/100',
+  description: 'Probability that the running result touches −B at some point during the first N hands (first-passage time of Brownian motion with drift).',
+  variables: { winRate: 'μ: true win rate (bb/100)', stdDev: 'σ: standard deviation (bb/100)', bankroll: 'B: bankroll (bb)', hands: 'number of hands' },
+  kind: 'model',
+  assumptions: [...VAR_ASSUMPTIONS, 'Continuous-time approximation: a simulation that checks only every few hands shows slightly less ruin.'],
+  compute: ({ winRate: mu, stdDev: s, bankroll: B, hands }) => {
+    const T = hands / 100
+    const a = normalCdf((-B - mu * T) / (s * Math.sqrt(T)))
+    const b = Math.exp((-2 * mu * B) / (s * s)) * normalCdf((-B + mu * T) / (s * Math.sqrt(T)))
+    return Math.min(1, a + (Number.isFinite(b) ? b : 0))
+  },
+  steps: ({ winRate: mu, stdDev: s, bankroll: B, hands }, v) => {
+    const T = hands / 100
+    const z1 = (-B - mu * T) / (s * Math.sqrt(T))
+    const z2 = (-B + mu * T) / (s * Math.sqrt(T))
+    return [`T = ${fmt(T)}`, `z₁ = ${fmt(z1, 3)}, z₂ = ${fmt(z2, 3)}`, `Φ(z₁) + exp(${fmt((-2 * mu * B) / (s * s), 4)})·Φ(z₂) = ${pct(v, 3)}`]
+  },
+})
+
+export const handsToConfidence = defineFormula<{ winRate: number; stdDev: number; confidenceZ: number }>({
+  id: 'handsToConfidence',
+  name: 'Hands needed to be confidently ahead',
+  expression: 'n = 100 · (z · sd / winRate)²',
+  description: 'Sample size after which the lower confidence bound of results is above zero (z = 1.645 for 95 % one-sided).',
+  variables: { winRate: 'true win rate (bb/100)', stdDev: 'standard deviation (bb/100)', confidenceZ: 'z-score of the confidence level' },
+  kind: 'model',
+  assumptions: VAR_ASSUMPTIONS,
+  compute: ({ winRate, stdDev, confidenceZ }) => (winRate <= 0 ? Infinity : 100 * Math.pow((confidenceZ * stdDev) / winRate, 2)),
+  steps: ({ winRate, stdDev, confidenceZ }, v) => [`100 · (${fmt(confidenceZ)}·${fmt(stdDev)} / ${fmt(winRate)})² = ${fmt(v, 0)} hands`],
+})
+
 /** Registry for the UI ("show the math" tooltips, formula reference page). */
 export const FORMULAS = {
   pairCombos, unpairedCombos, totalStartingHands,
@@ -430,5 +535,6 @@ export const FORMULAS = {
   mdf, alpha, bluffFraction, spr,
   hitNextCard, hitByRiver, ruleOf2, ruleOf4,
   impliedOddsNeeded, evWithImpliedOdds,
+  expectedWinnings, resultStdDev, probLoser, riskOfRuin, riskOfRuinFinite, handsToConfidence,
 } as const
 export type FormulaId = keyof typeof FORMULAS

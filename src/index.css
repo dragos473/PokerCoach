@@ -41,6 +41,11 @@
   --c-raise: #d9434b;
   --c-call: #2f9e6e;
   --c-fold: #3a4150;
+  /* Chart series (reference palette, dark steps) */
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --chart-grid: #232833;
 }
 
 [data-theme='light'] {
@@ -60,6 +65,10 @@
   --c-raise: #d0343c;
   --c-call: #1f8f5f;
   --c-fold: #c3c8d2;
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --chart-grid: #e3e6ec;
 }
 
 :root {

@@ -4,7 +4,7 @@
  * `cancel()` terminates the worker; a fresh one is spawned lazily on the next job.
  */
 import type { EquityResult } from '../equity'
-import type { EquityJob, Job, JobResultMap, PushFoldJob, WorkerResponse } from './protocol'
+import type { EquityJob, Job, JobResultMap, PushFoldJob, VarianceJob, WorkerResponse } from './protocol'
 
 export interface RunOptions<P = unknown> {
   onProgress?: (fraction: number, partial?: P) => void
@@ -52,6 +52,10 @@ export class EngineClient {
 
   pushFold(job: Omit<PushFoldJob, 'kind'>) {
     return this.run({ kind: 'pushFold', ...job })
+  }
+
+  variance(job: Omit<VarianceJob, 'kind'>) {
+    return this.run({ kind: 'variance', ...job })
   }
 
   get busy(): boolean {

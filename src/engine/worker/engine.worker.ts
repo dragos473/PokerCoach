@@ -5,6 +5,7 @@
  */
 import { calculateEquity } from '../equity'
 import { solvePushFold } from '../pushfold'
+import { simulateVariance } from '../variance'
 import type { WorkerRequest, WorkerResponse } from './protocol'
 
 const ctx = self as unknown as DedicatedWorkerGlobalScope
@@ -26,6 +27,10 @@ ctx.onmessage = (ev: MessageEvent<WorkerRequest>) => {
           onProgress: (p) => post({ id, type: 'progress', fraction: p.fraction, partial: p.partial }),
         })
         post({ id, type: 'result', result })
+        break
+      }
+      case 'variance': {
+        post({ id, type: 'result', result: simulateVariance(job) })
         break
       }
       case 'pushFold': {
